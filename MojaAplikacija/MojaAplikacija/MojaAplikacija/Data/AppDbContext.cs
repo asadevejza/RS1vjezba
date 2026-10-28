@@ -6,6 +6,8 @@ namespace MojaAplikacija.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<Student> Studenti => Set<Student>();
+        public DbSet<Smjer> sMJER => Set<Smjer>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Početni podaci: migracija ih upisuje u tabelu.
@@ -27,6 +29,23 @@ namespace MojaAplikacija.Data
                 BrojIndeksa = "IB260002",
                 DatumKreiranja= new DateTime(2026, 10, 1)
             });
+            modelBuilder.Entity<Student>()
+                .HasOne(s=>s.Smjer)
+                .WithMany(sm=>sm.Studenti)
+                .HasForeignKey(s=>s.SmjerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Smjer>().HasData(
+                new Smjer
+                {
+                    Id = 1,
+                    Naziv = "Softverski inženjering"
+                },
+                new Smjer
+                {
+                    Id = 2,
+                    Naziv = "Razvoj softvera"
+                }
+                );
         }
     }
 }

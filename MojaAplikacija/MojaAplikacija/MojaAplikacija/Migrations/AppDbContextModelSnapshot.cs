@@ -22,6 +22,35 @@ namespace MojaAplikacija.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("MojaAplikacija.Models.Smjer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("sMJER");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Naziv = "Softverski inženjering"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Naziv = "Razvoj softvera"
+                        });
+                });
+
             modelBuilder.Entity("MojaAplikacija.Models.Student", b =>
                 {
                     b.Property<int>("Id")
@@ -48,7 +77,12 @@ namespace MojaAplikacija.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SmjerId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SmjerId");
 
                     b.ToTable("Studenti");
 
@@ -70,6 +104,21 @@ namespace MojaAplikacija.Migrations
                             Ime = "Edin",
                             Prezime = "Edić"
                         });
+                });
+
+            modelBuilder.Entity("MojaAplikacija.Models.Student", b =>
+                {
+                    b.HasOne("MojaAplikacija.Models.Smjer", "Smjer")
+                        .WithMany("Studenti")
+                        .HasForeignKey("SmjerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Smjer");
+                });
+
+            modelBuilder.Entity("MojaAplikacija.Models.Smjer", b =>
+                {
+                    b.Navigation("Studenti");
                 });
 #pragma warning restore 612, 618
         }
