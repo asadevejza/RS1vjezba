@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MojaAplikacija.Data;
 using MojaAplikacija.Dtos;
 using MojaAplikacija.Models;
@@ -7,32 +8,36 @@ namespace MojaAplikacija.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class StudentiController(StudentStorage storage) : ControllerBase
+    public class StudentiController(AppDbContext db) : ControllerBase
     {
         [HttpGet]
-        public List<StudentResponse> GetAll()
+        public async Task<List<StudentResponse>> GetAll(CancellationToken ct)
         {
-            return storage.GetAll().Select(Mapiraj).ToList();
+            List<Student> studenti = await db.Studenti.ToListAsync(ct); // SELECT
+            return studenti.Select(Mapiraj).ToList();
         }
         [HttpGet("{id:int}")]
-        public ActionResult<StudentResponse> GetById(int id)
+        public async Task<ActionResult<StudentResponse>> GetById(int id, CancellationToken ct)
         {
-            Student? student = storage.GetById(id);
-            if (student == null)
-                return NotFound(); // 404, a ne izuzetak (500)
+            Student? student = await db.Studenti.FirstOrDefaultAsync(x => x.Id == id, ct); // SELECT ... WHERE Id = @id
+        if (student == null)
+                return NotFound();
             return Mapiraj(student);
         }
         [HttpPost]
-        public ActionResult<StudentResponse> Dodaj(StudentDodajRequest request)
+        public async Task<ActionResult<StudentResponse>> Dodaj(StudentDodajRequest request, CancellationToken
+       ct)
         {
-            // [ApiController] sam vraća 400 ako request ne prođe validaciju iz StudentDodajRequest
-            Student student = storage.Dodaj(new Student
+            Student student = new()
             {
                 Ime = request.Ime,
                 Prezime = request.Prezime,
                 BrojIndeksa = request.BrojIndeksa,
                 DatumRodjenja = request.DatumRodjenja,
-            });
+                DatumKreiranja = DateTime.UtcNow,
+            };
+            db.Studenti.Add(student);
+            await db.SaveChangesAsync(ct); // INSERT; baza dodjeljuje Id
             return CreatedAtAction(nameof(GetById), new { id = student.Id }, Mapiraj(student));
         }
         private static StudentResponse Mapiraj(Student s) => new()

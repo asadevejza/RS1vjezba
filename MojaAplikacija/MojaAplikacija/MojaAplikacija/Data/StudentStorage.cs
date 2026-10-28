@@ -1,5 +1,4 @@
 ﻿using MojaAplikacija.Models;
-
 namespace MojaAplikacija.Data
 {
     public class StudentStorage
